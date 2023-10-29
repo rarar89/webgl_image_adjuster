@@ -1,5 +1,4 @@
 import BrightnessSlider from "./Sliders/Brightness";
-import ContrastSlider from "./Sliders/Contrast";
 import ExposureSlider from "./Sliders/Exposure";
 import DefaultButton from "../Button/Default";
 import { canvasElementId } from "@/constants";
@@ -21,7 +20,6 @@ const EditorControls = () => {
     </div>
     <div className="absolute flex flex-col flex-wrap">
       <BrightnessSlider />
-      <ContrastSlider />
       <ExposureSlider />
       <div className="p-2">
         <DefaultButton onClick={downloadHandler}>Download</DefaultButton>

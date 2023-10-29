@@ -12,7 +12,7 @@ interface SliderState {
 const useSliderStore = create<SliderState>((set) => ({
   brightness: 0,
   contrast: 1,
-  exposure: 0,
+  exposure: 1,
   setBrightness: (value: number) => set(() => ({ brightness: value })),
   setContrast: (value: number) => set({ contrast: value }),
   setExposure: (value: number) => set({ exposure: value }),

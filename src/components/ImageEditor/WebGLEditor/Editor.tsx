@@ -3,7 +3,7 @@ import { SyntheticEvent, TouchEventHandler, WheelEventHandler, useEffect, useRef
 import { fragmentShaderSource, vertexShaderSource } from "@/components/ImageEditor/WebGLEditor/shaders";
 import useSliderStore from "../store";
 import { canvasElementId } from "@/constants";
-import { compileShader, isPowerOf2 } from "./utils";
+import { compileShader, getMinMaxFromImage, isPowerOf2 } from "./utils";
 import { scaleMatrix, translationMatrix } from "./positionMatrixes";
 
 let gl: WebGLRenderingContext;
@@ -14,9 +14,6 @@ let texCoordBuffer: WebGLBuffer | null;
 var tx = 0.0; // Translate 0.5 units to the right.
 var ty = 0.0; // No vertical movement.
 var tz = 0.0; // No depth movement in this 2D example.
-var scaleX = 2.0; // Double the size (zoom in).
-var scaleY = 2.0; // Double the size (zoom in).
-var scaleZ = 1.0; // No depth scale in this 2D example.
 
 
 type RenderProps = {
@@ -25,9 +22,10 @@ type RenderProps = {
   exposure: number;
   scale: number;
   position: [number, number];
+  scaleMod: [number, number];
 }
 
-const draw = ({ brightness, contrast, exposure, scale, position } 
+const draw = ({ brightness, contrast, exposure, scale, scaleMod, position }
   : RenderProps
   ) => {
 
@@ -41,6 +39,9 @@ const draw = ({ brightness, contrast, exposure, scale, position }
   const contrastLocation = gl.getUniformLocation(program, 'u_contrast');
   gl.uniform1f(contrastLocation, contrast);
 
+  const exposureLocation = gl.getUniformLocation(program, 'u_exposure');
+  gl.uniform1f(exposureLocation, exposure);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   const positionLocation = gl.getAttribLocation(program, 'a_position');
   gl.enableVertexAttribArray(positionLocation);
@@ -52,7 +53,7 @@ const draw = ({ brightness, contrast, exposure, scale, position }
   gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
   var translationMat = translationMatrix(tx, ty, tz);
-  var scaleMat = scaleMatrix(scale, scale, 1.0);
+  var scaleMat = scaleMatrix(scale*scaleMod[0], scale*scaleMod[1], 1.0);
 
   // Get uniform locations and set the matrices.
   var uTranslationMatrixLocation = gl.getUniformLocation(program, 'uTranslationMatrix');
@@ -78,6 +79,7 @@ const EditorImage = () => {
 
   const { brightness, contrast, exposure } = useSliderStore(state => state);
   const [ imageSize, setImageSize] = useState([0, 0]);
+  const [ scaleMod, setScaleMod ] = useState<[number, number]>([1, 1]);
   const [ position, setPosition ] = useState<[number, number]>([0, 0]); //x, y
   const [ scale, setScale ] = useState(1);
 
@@ -116,6 +118,7 @@ const EditorImage = () => {
 
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
+    
     gl.linkProgram(program);
     gl.useProgram(program);
 
@@ -147,51 +150,51 @@ const EditorImage = () => {
     image.src = `/api/image/${params.name}`;
     image.onload = () => {
       setImageSize([image.width, image.height]);
-    //  canvas.width = image.width;
-    //  canvas.height = image.height;
     
-      const ratioX = canvas.width / image.width;
-      const ratioY = canvas.height / image.height;
-      console.log('ratioX ratioY', ratioY, ratioX);
+      const aspectRatio = image.width / image.height;
+      const canvasAspectRatio = canvas.width / canvas.height;
+      let scaleX, scaleY;
+  
+      if (canvasAspectRatio > aspectRatio) {
+          // Canvas is wider than the image relative to its aspect ratio, so fit by height
+          scaleY = 1;
+          scaleX = aspectRatio / canvasAspectRatio;
+      } else {
+          // Canvas is taller than the image relative to its aspect ratio, or the same, so fit by width
+          scaleX = 1;
+          scaleY = canvasAspectRatio / aspectRatio;
+      }
 
-    //  gl.viewport(0, 0, image.width, image.height);
+      setScaleMod([scaleX, scaleY]);
       
       const texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
 
-      if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-        // Yes, it's a power of 2. Generate mips.
-        gl.generateMipmap(gl.TEXTURE_2D);
-      } else {
-        // No, it's not a power of 2. Turn off mips and set
-        // wrapping to clamp to edge
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      }
-
-    /*  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);*/
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-      
-      draw({brightness, contrast, exposure, position, scale});
 
+      const uMinLocation = gl.getUniformLocation(program, 'u_min');
+      gl.uniform1f(uMinLocation, 0);
+    
+      const uMaxLocation = gl.getUniformLocation(program, 'u_max');
+      gl.uniform1f(uMaxLocation, 1);
+      
+      draw({brightness, contrast, exposure, position, scale, scaleMod});
     };
 
   }, [params.name]);
 
   useEffect(() => {
     
-    draw({brightness, contrast, exposure, position, scale});
+    draw({brightness, contrast, exposure, position, scale, scaleMod});
 
-  }, [brightness, contrast, scale, position]);
+  }, [brightness, contrast, exposure, scale, position, scaleMod]);
 
   const wheelHandler = (e: any) => {
-
-    console.log('wheelHandler', e);
 
     if(e.deltaY > 0) {
       setScale((prev) => prev - 0.05);
@@ -203,64 +206,82 @@ const EditorImage = () => {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
-
-  const dragStartHandler = (e: MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-
+  
+  const updatePosition = (
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) => {
+    const deltaX = x - mousePosStart.current[0];
+    const deltaY = y - mousePosStart.current[1];
+  
+    tx += deltaX / width * 2;
+    ty -= deltaY / height * 2;
+  
+    mousePosStart.current = [x, y];
+    draw({ brightness, contrast, exposure, position, scale, scaleMod });
+  };
+  
+  
+  const dragStartHandler = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     isDragging.current = true;
     mousePosStart.current = [e.pageX, e.pageY];
-  }
-
-  const dragEndHandler = (e: any) => {
-    
-    isDragging.current = false;
-  }
-
-  const dragHandler = (e: any) => {
-    if(!isDragging.current || !canvasRef.current) return;
-
-    const deltaX = e.pageX - mousePosStart.current[0];
-    const deltaY = e.pageY - mousePosStart.current[1];
-
-    tx += deltaX / canvasRef.current.width * 2;
-    ty -= deltaY / canvasRef.current.height * 2;
-
-    mousePosStart.current = [e.pageX, e.pageY];
-
-    draw({ brightness, contrast, exposure, position, scale });
-  }
-
-  const touchStartHandler = (e: TouchEvent<HTMLCanvasElement>) => {
-      if (e.touches.length !== 1) return; // Single touch only
-
-      isDragging.current = true;
-      mousePosStart.current = [e.touches[0].pageX, e.touches[0].pageY];
+  };
+  
+  const dragEndHandler = () => isDragging.current = false;
+  
+  const dragHandler = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (!isDragging.current || !canvasRef.current) return;
+  
+    updatePosition(e.pageX, e.pageY, canvasRef.current.width, canvasRef.current.height);
+  };
+  
+  const touchStartHandler = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length !== 1) return; // Single touch only
+  
+    isDragging.current = true;
+    mousePosStart.current = [e.touches[0].pageX, e.touches[0].pageY];
+  };
+  
+  const touchMoveHandler = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length !== 1 || !canvasRef.current) return;
+  
+    updatePosition(
+      e.touches[0].pageX,
+      e.touches[0].pageY,
+      canvasRef.current.width,
+      canvasRef.current.height
+    );
   };
 
-  const touchMoveHandler = (e: TouchEvent<HTMLCanvasElement>) => {
-      if (e.touches.length !== 1 || !canvasRef.current) return; // Single touch only
+  const contrastAdjustHandler = () => {
+    const [min, max] = getMinMaxFromImage(imageSize[0], imageSize[1], gl);
 
-      const deltaX = e.touches[0].pageX - mousePosStart.current[0];
-      const deltaY = e.touches[0].pageY - mousePosStart.current[1];
+    console.log('imageSize', imageSize);
+    console.log('min, max', min, max);
 
-      tx += deltaX / canvasRef.current.width * 2; // Normalize for WebGL clip space [-1, 1]
-      ty -= deltaY / canvasRef.current.height * 2; // Invert Y and normalize
+    const uMinLocation = gl.getUniformLocation(program, 'u_min');
+    gl.uniform1f(uMinLocation, min);
+  
+    const uMaxLocation = gl.getUniformLocation(program, 'u_max');
+    gl.uniform1f(uMaxLocation, max);
 
-      mousePosStart.current = [e.touches[0].pageX, e.touches[0].pageY];  // Reset the start position
-
-      draw({ brightness, contrast, exposure, position, scale });
-  };
+    draw({ brightness, contrast, exposure, position, scale, scaleMod });
+  }
 
   return <div
       className="w-full h-full"
     >
+      <button className="mx-64" onClick={contrastAdjustHandler}>Contrast</button>
       <canvas
         onTouchStart={touchStartHandler}
         onTouchEnd={dragEndHandler}
         onTouchMove={touchMoveHandler}
-        onMouseDown={dragStartHandler} 
-        onMouseUp={dragEndHandler} 
+        onMouseDown={dragStartHandler}
+        onMouseUp={dragEndHandler}
         onMouseMove={dragHandler}
-        onWheel={wheelHandler} 
+        onWheel={wheelHandler}
         id={canvasElementId} 
         ref={canvasRef}>
       </canvas>

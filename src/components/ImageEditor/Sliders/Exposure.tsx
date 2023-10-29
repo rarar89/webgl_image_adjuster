@@ -10,10 +10,10 @@ const ExposureSlider = () => {
     <input 
       id="exposure-slider" 
       type="range" 
-      min="-1" max="1" 
+      min="0" max="2" 
       value={exposure} 
       onChange={ev => setExposure(parseFloat(ev.target.value))}
-      step="0.1"/>
+      step="0.1" />
   </div>
 }
 
