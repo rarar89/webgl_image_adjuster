@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { WheelEventHandler, useEffect, useRef, useState } from "react";
+import { SyntheticEvent, TouchEventHandler, WheelEventHandler, useEffect, useRef, useState } from "react";
 import { fragmentShaderSource, vertexShaderSource } from "@/components/ImageEditor/WebGLEditor/shaders";
 import useSliderStore from "../store";
 import { canvasElementId } from "@/constants";
@@ -73,12 +73,13 @@ const EditorImage = () => {
   const params = useParams();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const mousePosStart = useRef([0, 0]);
+  const isDragging = useRef(false);
 
   const { brightness, contrast, exposure } = useSliderStore(state => state);
-
   const [ imageSize, setImageSize] = useState([0, 0]);
-
-  const [ position, setPosition ] = useState([0, 0, 1]); //x, y, scale
+  const [ position, setPosition ] = useState<[number, number]>([0, 0]); //x, y
+  const [ scale, setScale ] = useState(1);
 
   useEffect(() => {
 
@@ -176,7 +177,7 @@ const EditorImage = () => {
       
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       
-      draw({brightness, contrast, exposure, position: [position[0], position[1]], scale: position[2]});
+      draw({brightness, contrast, exposure, position, scale});
 
     };
 
@@ -184,62 +185,85 @@ const EditorImage = () => {
 
   useEffect(() => {
     
-    draw({brightness, contrast, exposure, position: [position[0], position[1]], scale: position[2]});
+    draw({brightness, contrast, exposure, position, scale});
 
-  }, [brightness, contrast]);
-
-  useEffect(() => {
-    
-    //gl.viewport(position[0], position[1], imageSize[0] * position[2], imageSize[1] * position[2]);
-    //gl.drawArrays(gl.TRIANGLES, 0, 6);
-    draw({brightness, contrast, exposure, position: [position[0], position[1]], scale: position[2]});
-
-  }, [position]);
+  }, [brightness, contrast, scale, position]);
 
   const wheelHandler = (e: any) => {
 
     console.log('wheelHandler', e);
 
     if(e.deltaY > 0) {
-      setPosition((prev) => [prev[0], prev[1], (prev[2] + 0.05)]);
+      setScale((prev) => prev - 0.05);
 
     } else {  
       
-      setPosition((prev) => [prev[0], prev[1], (prev[2] - 0.05)]);
+      setScale((prev) => prev + 0.05);
     }
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  const dragStartHandler = (e: unknown) => {
+  const dragStartHandler = (e: MouseEvent<HTMLCanvasElement, MouseEvent>) => {
 
-    gl.viewport(0, 0, imageSize[0] * position[2], imageSize[1] * position[2]);
+    isDragging.current = true;
+    mousePosStart.current = [e.pageX, e.pageY];
+  }
+
+  const dragEndHandler = (e: any) => {
     
-    console.log('dragStartHandler', e);
+    isDragging.current = false;
   }
 
-  
-  const dragEndHandler = (e: unknown) => {
-    
-    console.log('dragEndHandler', e);
+  const dragHandler = (e: any) => {
+    if(!isDragging.current || !canvasRef.current) return;
+
+    const deltaX = e.pageX - mousePosStart.current[0];
+    const deltaY = e.pageY - mousePosStart.current[1];
+
+    tx += deltaX / canvasRef.current.width * 2;
+    ty -= deltaY / canvasRef.current.height * 2;
+
+    mousePosStart.current = [e.pageX, e.pageY];
+
+    draw({ brightness, contrast, exposure, position, scale });
   }
 
-  const draghandler = (e: unknown) => {
+  const touchStartHandler = (e: TouchEvent<HTMLCanvasElement>) => {
+      if (e.touches.length !== 1) return; // Single touch only
 
-    console.log('draghandler', e);
-  }
+      isDragging.current = true;
+      mousePosStart.current = [e.touches[0].pageX, e.touches[0].pageY];
+  };
+
+  const touchMoveHandler = (e: TouchEvent<HTMLCanvasElement>) => {
+      if (e.touches.length !== 1 || !canvasRef.current) return; // Single touch only
+
+      const deltaX = e.touches[0].pageX - mousePosStart.current[0];
+      const deltaY = e.touches[0].pageY - mousePosStart.current[1];
+
+      tx += deltaX / canvasRef.current.width * 2; // Normalize for WebGL clip space [-1, 1]
+      ty -= deltaY / canvasRef.current.height * 2; // Invert Y and normalize
+
+      mousePosStart.current = [e.touches[0].pageX, e.touches[0].pageY];  // Reset the start position
+
+      draw({ brightness, contrast, exposure, position, scale });
+  };
 
   return <div
       className="w-full h-full"
     >
       <canvas
-        onTouchStart={dragStartHandler}
-        onTouchEnd={dragStartHandler}
+        onTouchStart={touchStartHandler}
+        onTouchEnd={dragEndHandler}
+        onTouchMove={touchMoveHandler}
         onMouseDown={dragStartHandler} 
         onMouseUp={dragEndHandler} 
+        onMouseMove={dragHandler}
         onWheel={wheelHandler} 
-      id={canvasElementId} 
-      ref={canvasRef}></canvas>
+        id={canvasElementId} 
+        ref={canvasRef}>
+      </canvas>
     </div>
 }
 
