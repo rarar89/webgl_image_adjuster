@@ -16,9 +16,12 @@ import {
   setProgram,
   texCoordBuffer,
   setTexCoordBuffer,
-} from '../contexts';
-import drawPos from '../draw/drawPos';
-import useEditorStore from '../store';
+} from '@/app/(imageEditor)/contexts';
+import drawPos from '@/app/(imageEditor)/draw/drawPos';
+import useEditorStore from '@/app/(imageEditor)/store';
+import { loadImage } from '@/app/(imageEditor)/utils/loadImage';
+
+const MIN_SCALE = 0.2;
 
 const EditorImage = () => {
   const params = useParams();
@@ -116,44 +119,11 @@ const EditorImage = () => {
     const image = new Image();
     image.src = `/api/image/${params.name}`;
     image.onload = () => {
-      const aspectRatio = image.width / image.height;
-      const canvasAspectRatio = canvas.width / canvas.height;
-      let scaleX, scaleY;
-
-      if (canvasAspectRatio > aspectRatio) {
-        scaleY = 1;
-        scaleX = aspectRatio / canvasAspectRatio;
-      } else {
-        scaleX = 1;
-        scaleY = canvasAspectRatio / aspectRatio;
-      }
-
-      scaleMod.current = [scaleX, scaleY];
-
-      const texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        image
-      );
-
-      const uMinLocation = gl.getUniformLocation(program, 'u_min');
-      gl.uniform1f(uMinLocation, 0);
-
-      const uMaxLocation = gl.getUniformLocation(program, 'u_max');
-      gl.uniform1f(uMaxLocation, 1);
+      const imageParams = loadImage(image, canvas, gl, program);
+      scaleMod.current = imageParams.scale;
 
       setImageState('loaded');
+
       drawPos({
         position: position.current,
         scale: scale.current,
@@ -163,6 +133,10 @@ const EditorImage = () => {
   }, [params.name, setImageState]);
 
   const wheelHandler = (e: any) => {
+    if (scale.current < MIN_SCALE && e.deltaY > 0) {
+      return;
+    }
+
     if (e.deltaY > 0) {
       scale.current -= 0.05;
     } else {
