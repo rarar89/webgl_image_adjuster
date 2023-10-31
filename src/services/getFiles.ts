@@ -1,12 +1,15 @@
 import { FileEntry } from '@/models/FileEntry';
+import { readdir } from 'fs/promises';
+
+export const imageDirectory = 'uploads';
 
 export const getFiles = async (): Promise<FileEntry[]> => {
-  const res = await fetch(process.env.BACKEND_URL + '/api/image', {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
-    throw new Error('Failed to fetch data');
+  const result: FileEntry[] = [];
+  const files = await readdir(imageDirectory);
+
+  for (const file of files) {
+    result.push({ name: file });
   }
 
-  return res.json();
+  return result;
 };

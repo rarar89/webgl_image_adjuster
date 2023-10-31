@@ -1,7 +1,7 @@
 import NavigatedList from '@/components/NavigatedList';
 import { getFiles } from '@/services/getFiles';
 
-const FileList = async () => {
+export default async function FileList() {
   const data = await getFiles();
 
   return (
@@ -9,6 +9,4 @@ const FileList = async () => {
       <NavigatedList data={data} url='/image/[target]' />
     </div>
   );
-};
-
-export default FileList;
+}

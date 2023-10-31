@@ -1,29 +1,7 @@
 import { NextResponse } from 'next/server';
-import { readdir } from 'fs/promises';
 import fs from 'fs';
-import { FileEntry } from '@/models/FileEntry';
-
-const imageDirectory = 'uploads';
+import { imageDirectory } from '@/services/getFiles';
 const chunkSize = 1 * 1024 * 1024;
-
-export async function GET(request: Request) {
-  try {
-    const result: FileEntry[] = [];
-    const files = await readdir(imageDirectory);
-
-    for (const file of files) {
-      result.push({ name: file });
-    }
-
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error('Error reading directory:', err);
-    return NextResponse.json(
-      { errorMessage: 'Error reading directory' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request: Request) {
   try {
