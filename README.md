@@ -8,6 +8,7 @@ Features:
 - Zoom In / Zoom Out
 - Contrast Streching (WIP)
 - JPG / PNG Support
+- Download adjusted image
 
 WEB GL, Next JS, Tailwind, Zustand
 
