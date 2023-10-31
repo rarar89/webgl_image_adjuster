@@ -1,5 +1,5 @@
-import FileList from '@/components/FileList';
-import ImageUploader from '@/components/ImageUploader';
+import FileList from '@/app/components/FileList';
+import ImageUploader from '@/app/components/ImageUploader';
 
 export default async function Home() {
   return (

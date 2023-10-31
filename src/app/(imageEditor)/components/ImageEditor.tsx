@@ -1,5 +1,5 @@
 import ColorAdjusterComponent from './ColorAdjuster';
-import GraphicsComponent from './Editor';
+import GraphicsComponent from './GraphicsEditor';
 
 const WebGLEditor = () => (
   <div>

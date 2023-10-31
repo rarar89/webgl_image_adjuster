@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import drawColor from '../draw/drawColor';
-import useSliderStore from '../../store';
+import drawColor from '@/app/(imageEditor)/draw/drawColor';
+import useSliderStore from '@/app/(imageEditor)/store';
 import { useParams } from 'next/navigation';
 import { defaultBrightnessValue, defaultExposureValue } from '@/constants';
 

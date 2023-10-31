@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import DefaultButton from '../Button/Default';
+import DefaultButton from '../../../components/Button/Default';
 
 const uploadImageService = async (formData: FormData) => {
   const response = await fetch('/api/image', {

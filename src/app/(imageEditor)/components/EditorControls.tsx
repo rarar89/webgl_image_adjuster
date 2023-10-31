@@ -1,9 +1,9 @@
 import BrightnessSlider from './Sliders/Brightness';
 import ExposureSlider from './Sliders/Exposure';
-import DefaultButton from '../Button/Default';
+import DefaultButton from '@/components/Button/Default';
 import { canvasElementId } from '@/constants';
 import { useRouter } from 'next/navigation';
-import drawContrastStrech from './WebGLEditor/draw/drawContrastStrech';
+import drawContrastStrech from '../draw/drawContrastStrech';
 
 const EditorControls = () => {
   const router = useRouter();

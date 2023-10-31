@@ -1,5 +1,5 @@
-import EditorControls from './EditorControls';
-import WebGLEditor from './WebGLEditor/components/Index';
+import EditorControls from '../components/EditorControls';
+import WebGLEditor from '../components/Index';
 
 const ImageEditor = () => {
   return (

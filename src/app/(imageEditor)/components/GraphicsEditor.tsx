@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import {
   fragmentShaderSource,
   vertexShaderSource,
-} from '@/components/ImageEditor/WebGLEditor/shaders';
+} from '@/app/(imageEditor)/shaders';
 import { canvasElementId } from '@/constants';
-import { compileShader } from '../utils/compileShader';
+import { compileShader } from '@/app/(imageEditor)/utils/compileShader';
 import { useShallow } from 'zustand/react/shallow';
 import {
   gl,
@@ -18,7 +18,7 @@ import {
   setTexCoordBuffer,
 } from '../contexts';
 import drawPos from '../draw/drawPos';
-import useEditorStore from '../../store';
+import useEditorStore from '../store';
 
 const EditorImage = () => {
   const params = useParams();
