@@ -1,4 +1,9 @@
-import { gl, positionBuffer, program, texCoordBuffer } from '../contexts';
+import {
+  gl,
+  positionBuffer,
+  program,
+  texCoordBuffer,
+} from '@/app/(imageEditor)/contexts';
 
 type drawColorProps = {
   brightness: number;

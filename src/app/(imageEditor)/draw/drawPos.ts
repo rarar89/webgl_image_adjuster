@@ -1,5 +1,8 @@
 import { gl, positionBuffer, program, texCoordBuffer } from '../contexts';
-import { scaleMatrix, translationMatrix } from '../utils/positionMatrixes';
+import {
+  scaleMatrix,
+  translationMatrix,
+} from '@/app/(imageEditor)/utils/positionMatrixes';
 
 type DrawPosProps = {
   scale: number;

@@ -1,5 +1,5 @@
 import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   fragmentShaderSource,
   vertexShaderSource,

@@ -16,8 +16,6 @@ export const loadImage = (
     scaleY = canvasAspectRatio / aspectRatio;
   }
 
-  //scaleMod.current = [scaleX, scaleY];
-
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 

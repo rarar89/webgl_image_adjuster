@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import useSliderStore from '../../store';
+import useSliderStore from '@/app/(imageEditor)/store';
 import Slider from '@/components/Slider';
 
 const BrightnessSlider = () => {

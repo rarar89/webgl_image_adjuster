@@ -1,6 +1,6 @@
 import { canvasElementId } from '@/constants';
-import { gl, program } from '../contexts';
-import getMinMaxFromImage from '../utils/getMinMax';
+import { gl, program } from '@/app/(imageEditor)/contexts';
+import getMinMaxFromImage from '@/app/(imageEditor)/utils/getMinMax';
 
 const setContrastStrech = () => {
   const canvas = document.getElementById(canvasElementId) as HTMLCanvasElement;

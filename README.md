@@ -7,7 +7,7 @@
 - Contrast Streching (WIP)
 - JPG / PNG Support
 
-Next JS, Tailwind, WEB GL
+WEB GL, Next JS, Tailwind, Zustand
 
 ## Start Project
 
