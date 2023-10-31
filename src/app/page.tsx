@@ -1,14 +1,18 @@
-import FileList from '@/components/FileList'
-import ImageUploader from '@/components/ImageUploader'
-
-
+import FileList from '@/components/FileList';
+import ImageUploader from '@/components/ImageUploader';
 
 export default async function Home() {
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <FileList />
-      <ImageUploader />
+    <main className='p-2'>
+      <div className='py-2'>
+        <h1 className='text-lg'>File Upload</h1>
+      </div>
+      <div className='py-2'>
+        <ImageUploader />
+      </div>
+      <div className='py-2'>
+        <FileList />
+      </div>
     </main>
-  )
+  );
 }

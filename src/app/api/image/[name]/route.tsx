@@ -1,16 +1,24 @@
-import { NextResponse } from "next/server";
-import { Readable } from "stream";
-import { writeFile, readFile } from 'fs/promises'
+import { NextResponse } from 'next/server';
+import { writeFile, readFile } from 'fs/promises';
 
-export async function GET(request: Request, options: {params: {name: string} }) {
+export async function GET(
+  request: Request,
+  options: { params: { name: string } }
+) {
+  try {
+    const imageName = options.params.name;
+    const file = await readFile(`uploads/${imageName}`);
 
-  const imageName = options.params.name;
-
-  const file = await readFile(`uploads/${imageName}`);
-
-  return new NextResponse(file, {
-    headers: {
-      "Content-Type": 'image/png',
-    },
-  });
+    return new NextResponse(file, {
+      headers: {
+        'Content-Type': 'image/png',
+      },
+    });
+  } catch (err) {
+    console.error('Error reading file:', err);
+    return NextResponse.json(
+      { message: 'Error reading file' },
+      { status: 500 }
+    );
+  }
 }

@@ -1,21 +1,24 @@
-import { create } from 'zustand'
+import { defaultBrightnessValue, defaultExposureValue } from '@/constants';
+import { create } from 'zustand';
 
-interface SliderState {
+type ImageState = 'loading' | 'loaded';
+
+interface EditorState {
   brightness: number;
-  contrast: number;
   exposure: number;
+  imageState: ImageState;
   setBrightness: (value: number) => void;
-  setContrast: (value: number) => void;
   setExposure: (value: number) => void;
+  setImageState: (value: ImageState) => void;
 }
 
-const useSliderStore = create<SliderState>((set) => ({
-  brightness: 0,
-  contrast: 1,
-  exposure: 1,
+const useEditorStore = create<EditorState>((set) => ({
+  brightness: defaultBrightnessValue,
+  exposure: defaultExposureValue,
+  imageState: 'loading',
   setBrightness: (value: number) => set(() => ({ brightness: value })),
-  setContrast: (value: number) => set({ contrast: value }),
   setExposure: (value: number) => set({ exposure: value }),
-}))
+  setImageState: (value: ImageState) => set({ imageState: value }),
+}));
 
-export default useSliderStore;
+export default useEditorStore;

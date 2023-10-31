@@ -1,14 +1,13 @@
-import EditorControls from "./EditorControls";
-import EditorImage from "./WebGLEditor/Editor";
+import EditorControls from './EditorControls';
+import WebGLEditor from './WebGLEditor/components/Index';
 
 const ImageEditor = () => {
-
-  console.log('ImageEditor');
-
-  return <div>
-    <EditorControls />
-    <EditorImage />
-  </div>
-}
+  return (
+    <div>
+      <EditorControls />
+      <WebGLEditor />
+    </div>
+  );
+};
 
 export default ImageEditor;

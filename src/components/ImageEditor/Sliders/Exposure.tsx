@@ -1,20 +1,26 @@
-import { useShallow } from "zustand/react/shallow";
-import useSliderStore from "../store";
+import { useShallow } from 'zustand/react/shallow';
+import useSliderStore from '../store';
+import Slider from '@/components/Slider';
 
 const ExposureSlider = () => {
+  const { exposure, setExposure } = useSliderStore(
+    useShallow((state) => ({
+      exposure: state.exposure,
+      setExposure: state.setExposure,
+    }))
+  );
 
-  const {exposure, setExposure } = useSliderStore(useShallow((state) => ({ exposure: state.exposure, setExposure: state.setExposure })));
-
-  return <div className="rounded bg-slate-600 h-16 p-2 m-2">
-    <div>Exposure:</div>
-    <input 
-      id="exposure-slider" 
-      type="range" 
-      min="0" max="2" 
-      value={exposure} 
-      onChange={ev => setExposure(parseFloat(ev.target.value))}
-      step="0.1" />
-  </div>
-}
+  return (
+    <Slider
+      label='Exposure:'
+      id='brightness-slider'
+      min='0'
+      max='2'
+      step='0.1'
+      value={exposure}
+      onChange={setExposure}
+    />
+  );
+};
 
 export default ExposureSlider;

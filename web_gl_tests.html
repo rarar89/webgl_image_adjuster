@@ -1,49 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>WebGL Triangle</title>
     <style>
-        canvas {
-            border: 1px solid black;
-        }
+      canvas {
+        border: 1px solid black;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <canvas id="myCanvas" width="500" height="500"></canvas>
 
     <script>
+      function translationMatrix(tx, ty, tz) {
+        return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1];
+      }
 
-        function translationMatrix(tx, ty, tz) {
-            return [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-        }
+      function scaleMatrix(sx, sy, sz) {
+        return [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 1, 0, 0, 0, 1];
+      }
 
-        function scaleMatrix(sx, sy, sz) {
-            return [
-                sx, 0, 0, 0,
-                0, sy, 0, 0,
-                0, 0, sz, 1,
-                0, 0, 0, 1
-            ];
-        }
+      var canvas = document.getElementById('myCanvas');
+      var gl = canvas.getContext('webgl');
 
-        var canvas = document.getElementById('myCanvas');
-        var gl = canvas.getContext('webgl');
+      // Define the vertices for the triangle in clip space.
+      var vertices = new Float32Array([
+        -0.5,
+        0.5, // Vertex A
+        0.5,
+        0.5, // Vertex B
+        0.0,
+        -0.5, // Vertex C
+      ]);
 
-        // Define the vertices for the triangle in clip space.
-        var vertices = new Float32Array([
-            -0.5,  0.5,  // Vertex A
-             0.5,  0.5,  // Vertex B
-             0.0, -0.5   // Vertex C
-        ]);
-
-        // Vertex shader program.
-        var vsSource = `
+      // Vertex shader program.
+      var vsSource = `
           attribute vec2 position;
           uniform mat4 uTranslationMatrix;
           uniform mat4 uScaleMatrix;
@@ -52,99 +44,108 @@
           }
         `;
 
-        // Fragment shader program.
-        var fsSource = `
+      // Fragment shader program.
+      var fsSource = `
             void main() {
                 gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
             }
         `;
 
-        // Function to compile shader.
-        function compileShader(source, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
+      // Function to compile shader.
+      function compileShader(source, type) {
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
 
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-                gl.deleteShader(shader);
-                return null;
-            }
-            return shader;
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error(
+            'An error occurred compiling the shaders: ' +
+              gl.getShaderInfoLog(shader)
+          );
+          gl.deleteShader(shader);
+          return null;
         }
+        return shader;
+      }
 
-        // Compile shaders.
-        var vertexShader = compileShader(vsSource, gl.VERTEX_SHADER);
-        var fragmentShader = compileShader(fsSource, gl.FRAGMENT_SHADER);
+      // Compile shaders.
+      var vertexShader = compileShader(vsSource, gl.VERTEX_SHADER);
+      var fragmentShader = compileShader(fsSource, gl.FRAGMENT_SHADER);
 
-        // Link shaders into a program.
-        var shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
-        gl.linkProgram(shaderProgram);
+      // Link shaders into a program.
+      var shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vertexShader);
+      gl.attachShader(shaderProgram, fragmentShader);
+      gl.linkProgram(shaderProgram);
 
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-        }
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error(
+          'Unable to initialize the shader program: ' +
+            gl.getProgramInfoLog(shaderProgram)
+        );
+      }
 
-        // Create a buffer and put the vertices in it.
-        var vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+      // Create a buffer and put the vertices in it.
+      var vertexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-        // Bind the buffer, i.e., let's use the buffer we've just created.
-        gl.useProgram(shaderProgram);
+      // Bind the buffer, i.e., let's use the buffer we've just created.
+      gl.useProgram(shaderProgram);
 
-        // Get the attribute location, enable it.
-        var position = gl.getAttribLocation(shaderProgram, 'position');
-        gl.enableVertexAttribArray(position);
-        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      // Get the attribute location, enable it.
+      var position = gl.getAttribLocation(shaderProgram, 'position');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
-        // Set translation and scale.
-        var tx = 0.0; // Translate 0.5 units to the right.
-        var ty = 0.0; // No vertical movement.
-        var tz = 0.0; // No depth movement in this 2D example.
-        var scaleX = 2.0; // Double the size (zoom in).
-        var scaleY = 2.0; // Double the size (zoom in).
-        var scaleZ = 1.0; // No depth scale in this 2D example.
+      // Set translation and scale.
+      var tx = 0.0; // Translate 0.5 units to the right.
+      var ty = 0.0; // No vertical movement.
+      var tz = 0.0; // No depth movement in this 2D example.
+      var scaleX = 2.0; // Double the size (zoom in).
+      var scaleY = 2.0; // Double the size (zoom in).
+      var scaleZ = 1.0; // No depth scale in this 2D example.
 
-        function render() {
+      function render() {
+        var translationMat = translationMatrix(tx, ty, tz);
+        var scaleMat = scaleMatrix(scaleX, scaleY, scaleZ);
 
-          var translationMat = translationMatrix(tx, ty, tz);
-          var scaleMat = scaleMatrix(scaleX, scaleY, scaleZ);
+        // Get uniform locations and set the matrices.
+        var uTranslationMatrixLocation = gl.getUniformLocation(
+          shaderProgram,
+          'uTranslationMatrix'
+        );
+        gl.uniformMatrix4fv(uTranslationMatrixLocation, false, translationMat);
 
-          // Get uniform locations and set the matrices.
-          var uTranslationMatrixLocation = gl.getUniformLocation(shaderProgram, 'uTranslationMatrix');
-          gl.uniformMatrix4fv(uTranslationMatrixLocation, false, translationMat);
+        var uScaleMatrixLocation = gl.getUniformLocation(
+          shaderProgram,
+          'uScaleMatrix'
+        );
+        gl.uniformMatrix4fv(uScaleMatrixLocation, false, scaleMat);
 
-          var uScaleMatrixLocation = gl.getUniformLocation(shaderProgram, 'uScaleMatrix');
-          gl.uniformMatrix4fv(uScaleMatrixLocation, false, scaleMat);
+        // Clear the canvas and draw the triangle.
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-          // Clear the canvas and draw the triangle.
-          gl.clearColor(0.0, 0.0, 0.0, 1.0);
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          
-          gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
+        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
+      }
+
+      render();
+
+      setInterval(() => {
+        tx += 0.001;
+        scaleX -= 0.01;
+        scaleY -= 0.01;
+        //  tz += 0.001;
+
+        if (scaleX < -3) {
+          scaleX = 2;
+          scaleY = 2;
+          tx = 0;
         }
 
         render();
-
-        setInterval(()=>{
-
-          tx += 0.001;
-          scaleX -= 0.01;
-          scaleY -= 0.01;
-        //  tz += 0.001;
-
-          if(scaleX < -3) {
-            scaleX = 2;
-            scaleY = 2;
-            tx = 0;
-          }
-
-          render();
-        }, 100);
-
+      }, 100);
     </script>
-</body>
+  </body>
 </html>

@@ -4,6 +4,7 @@ export const vertexShaderSource = `
   varying vec2 v_texCoord;
   uniform mat4 uTranslationMatrix;
   uniform mat4 uScaleMatrix;
+  
   void main() {
     gl_Position = uScaleMatrix * uTranslationMatrix * vec4(a_position, 0.0, 1.0);
     v_texCoord = a_texCoord;
