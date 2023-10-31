@@ -3,21 +3,8 @@
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import DefaultButton from '../../../components/Button/Default';
-
-const uploadImageService = async (formData: FormData) => {
-  const response = await fetch('/api/image', {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw errorData?.message ?? 'an error occured';
-  }
-
-  return response.json();
-};
+import DefaultButton from '@/components/Button/Default';
+import { uploadImage } from '@/services/uploadImage';
 
 const ImageUploader = () => {
   const ref = useRef<HTMLInputElement>(null);
@@ -36,12 +23,12 @@ const ImageUploader = () => {
     }
 
     try {
-      await uploadImageService(formData);
+      await uploadImage(formData);
       toast('Image uploaded successfully', { type: 'success' });
       router.refresh();
       setIsLoading(false);
     } catch (error: unknown) {
-      toast((error as Error)?.message ?? error ?? 'An Error occured', {
+      toast((error as Error)?.message ?? 'An Error occured', {
         type: 'error',
       });
       setIsLoading(false);
