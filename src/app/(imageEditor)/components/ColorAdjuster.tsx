@@ -4,7 +4,7 @@ import useSliderStore from '@/app/(imageEditor)/store';
 import { useParams } from 'next/navigation';
 import { defaultBrightnessValue, defaultExposureValue } from '@/constants';
 
-const ColorAdjusterComponent = () => {
+const ColorAdjuster = () => {
   const params = useParams();
 
   const { brightness, exposure, imageState, setBrightness, setExposure } =
@@ -26,4 +26,4 @@ const ColorAdjusterComponent = () => {
   return null;
 };
 
-export default ColorAdjusterComponent;
+export default ColorAdjuster;

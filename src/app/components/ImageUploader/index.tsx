@@ -40,7 +40,12 @@ const ImageUploader = () => {
       <form onSubmit={handleSubmit}>
         <div className='flex'>
           <div>
-            <input type='file' name='files' ref={ref} accept='.png' />
+            <input
+              type='file'
+              name='files'
+              ref={ref}
+              accept='image/png, image/jpeg'
+            />
           </div>
           <div>
             <DefaultButton disabled={isLoading} type='submit'>
