@@ -1,3 +1,14 @@
+## Simple WEB GL Image Editor
+
+- Upload images
+- Slider to adjust brightness
+- Slider to adjust pseudo-exposure
+- Zoom In / Zoom Out
+- Contrast Streching (WIP)
+- JPG / PNG Support
+
+Next JS, Tailwind, WEB GL
+
 ## Start Project
 
 ```bash
