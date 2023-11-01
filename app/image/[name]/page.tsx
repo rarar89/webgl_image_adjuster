@@ -1,5 +1,5 @@
 import EditorControls from '@/image/[name]/_components/EditorControls';
-import WebGLEditor from '@/image/[name]/_components/ImageEditor';
+import ImageEditor from '@/image/[name]/_components/ImageEditor';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export default function ImagePage() {
   return (
     <main>
       <EditorControls />
-      <WebGLEditor />
+      <ImageEditor />
     </main>
   );
 }
