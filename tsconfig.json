@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./app/*"]
     }
   },
   "include": [
@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/ImageEditor/WebGLEditor/ColorAdjustertsx"
+    "/_components/ImageEditor/WebGLEditor/ColorAdjustertsx"
   ],
   "exclude": ["node_modules"]
 }
